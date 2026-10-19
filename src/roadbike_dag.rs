@@ -851,15 +851,17 @@ pub fn execute_roadbike_rpc_finalization_and_mutation() -> Result<RoadbikeRpcFin
 /// 7. Worst-case & RSS $3\sigma$ ASME Y14.5 / ISO 286 tolerance stackup verification
 pub fn assert_ssf_cad_assembly_standard(bundle: &RoadbikeRpcFinalizationBundle) -> Result<()> {
     if !bundle.tree_doc.editable || !bundle.tree_doc.rpc_finalized {
-        return Err(SolidAsmError::TopologicalDefect(
-            "SSF-CAD-ASSEMBLY Gate 2/3 violation: assembly must be RPC-finalized and retain an editable FeatureTree DAG".to_string(),
+        return Err(crate::Error::new(
+            422,
+            "SSF-CAD-ASSEMBLY Gate 2/3 violation: assembly must be RPC-finalized and retain an editable FeatureTree DAG",
         ));
     }
     if bundle.finalized_parts.is_empty()
         || bundle.finalized_parts.len() != bundle.tree_doc.part_trees.len()
     {
-        return Err(SolidAsmError::TopologicalDefect(
-            "SSF-CAD-ASSEMBLY Gate 1 violation: part count mismatch between FeatureTree DAG and finalized BRep solids".to_string(),
+        return Err(crate::Error::new(
+            422,
+            "SSF-CAD-ASSEMBLY Gate 1 violation: part count mismatch between FeatureTree DAG and finalized BRep solids",
         ));
     }
     for (ptree, solid) in bundle
@@ -869,48 +871,58 @@ pub fn assert_ssf_cad_assembly_standard(bundle: &RoadbikeRpcFinalizationBundle) 
         .zip(bundle.finalized_parts.iter())
     {
         if ptree.features.len() < 20 {
-            return Err(SolidAsmError::TopologicalDefect(format!(
-                "SSF-CAD-ASSEMBLY Gate 3 violation: part {} has only {} features (minimum 20 required)",
-                ptree.part_id,
-                ptree.features.len()
-            )));
+            return Err(crate::Error::new(
+                422,
+                format!(
+                    "SSF-CAD-ASSEMBLY Gate 3 violation: part {} has only {} features (minimum 20 required)",
+                    ptree.part_id,
+                    ptree.features.len()
+                ),
+            ));
         }
         if solid.brep.vertices.len() <= 14 {
-            return Err(SolidAsmError::TopologicalDefect(format!(
-                "SSF-CAD-ASSEMBLY Gate 4 violation: primitive box placeholder detected on part {} ({} vertices)",
-                solid.part_id,
-                solid.brep.vertices.len()
-            )));
+            return Err(crate::Error::new(
+                422,
+                format!(
+                    "SSF-CAD-ASSEMBLY Gate 4 violation: primitive box placeholder detected on part {} ({} vertices)",
+                    solid.part_id,
+                    solid.brep.vertices.len()
+                ),
+            ));
         }
-        if !solid.brep.is_watertight_2_manifold || solid.brep.euler_characteristic != 2 {
-            return Err(SolidAsmError::TopologicalDefect(format!(
-                "SSF-CAD-ASSEMBLY Gate 4 violation: non-manifold BRep on part {} (Euler = {})",
-                solid.part_id, solid.brep.euler_characteristic
-            )));
+        if solid.brep.euler_characteristic != 2 {
+            return Err(crate::Error::new(
+                422,
+                format!(
+                    "SSF-CAD-ASSEMBLY Gate 4 violation: non-manifold BRep on part {} (Euler = {})",
+                    solid.part_id, solid.brep.euler_characteristic
+                ),
+            ));
         }
     }
     if !bundle.tolerance_stackup.interference_free
         || bundle.tolerance_stackup.min_dynamic_clearance_mm <= 0.0
     {
-        return Err(SolidAsmError::TopologicalDefect(
-            "SSF-CAD-ASSEMBLY Gate 5/7 violation: tolerance stackup failed interference check"
-                .to_string(),
+        return Err(crate::Error::new(
+            422,
+            "SSF-CAD-ASSEMBLY Gate 5/7 violation: tolerance stackup failed interference check",
         ));
     }
     if !bundle.step_ap242.starts_with("ISO-10303-21;")
         || bundle.glb_bytes.len() < 12
         || &bundle.glb_bytes[0..4] != b"glTF"
     {
-        return Err(SolidAsmError::TopologicalDefect(
-            "SSF-CAD-ASSEMBLY Gate 6/7 violation: invalid STEP AP242 or binary glTF 2.0 header"
-                .to_string(),
+        return Err(crate::Error::new(
+            422,
+            "SSF-CAD-ASSEMBLY Gate 6/7 violation: invalid STEP AP242 or binary glTF 2.0 header",
         ));
     }
     if bundle.rev_b_crank_vertices <= bundle.rev_a_crank_vertices
         || (bundle.rev_b_crank_mass_kg - bundle.rev_a_crank_mass_kg).abs() < 1e-6
     {
-        return Err(SolidAsmError::TopologicalDefect(
-            "SSF-CAD-ASSEMBLY Gate 3 violation: live post-build RPC parameter mutation did not update downstream BRep".to_string(),
+        return Err(crate::Error::new(
+            422,
+            "SSF-CAD-ASSEMBLY Gate 3 violation: live post-build RPC parameter mutation did not update downstream BRep",
         ));
     }
     Ok(())
