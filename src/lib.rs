@@ -6,6 +6,7 @@
 pub mod cloud_ws;
 pub mod mechinterp;
 pub mod roadbike_dag;
+pub mod youtube_lod;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -1392,4 +1393,66 @@ mod tests {
         assert!(bundle.step_ap242.contains("NEXT_ASSEMBLY_USAGE_OCCURRENCE"));
         assert!(bundle.glb_bytes.starts_with(b"glTF"));
     }
+
+    #[test]
+    fn solidasm_youtube_url_ferrari_458_all_four_lods_and_2d_drawing_readiness_hold() {
+        let url = "https://www.youtube.com/watch?v=vWIJdsYnO9E";
+        assert_eq!(youtube_lod::parse_youtube_video_id(url), "vWIJdsYnO9E");
+
+        let toy = youtube_lod::reconstruct_youtube_url_to_cad(
+            url,
+            youtube_lod::SolidAsmLevelOfDetail::Toy,
+        )
+        .unwrap();
+        assert_eq!(toy.tree_doc.total_parts, 6);
+        assert!(!toy.model_self_audit.all_details_present);
+        assert!(!toy.model_self_audit.ready_for_2d_drawing_package);
+        assert!(!toy.model_self_audit.missing_for_production_drawing.is_empty());
+
+        let fast = youtube_lod::reconstruct_youtube_url_to_cad(
+            url,
+            youtube_lod::SolidAsmLevelOfDetail::Fast,
+        )
+        .unwrap();
+        assert_eq!(fast.tree_doc.total_parts, 12);
+        assert!(fast.model_self_audit.ready_for_2d_drawing_package);
+        assert!(fast.tree_doc.total_feature_nodes > toy.tree_doc.total_feature_nodes);
+
+        let deep = youtube_lod::reconstruct_youtube_url_to_cad(
+            url,
+            youtube_lod::SolidAsmLevelOfDetail::Deep,
+        )
+        .unwrap();
+        assert_eq!(deep.tree_doc.total_parts, 16);
+        assert!(deep.model_self_audit.all_details_present);
+        assert!(deep.model_self_audit.all_features_toleranced);
+        assert!(deep.model_self_audit.ready_for_2d_drawing_package);
+        assert!(deep.tree_doc.total_feature_nodes > fast.tree_doc.total_feature_nodes);
+
+        let max_bundle = youtube_lod::reconstruct_youtube_url_to_cad(
+            url,
+            youtube_lod::SolidAsmLevelOfDetail::Max,
+        )
+        .unwrap();
+        assert_eq!(max_bundle.source_video_id, "vWIJdsYnO9E");
+        assert_eq!(
+            max_bundle.source_video_title,
+            "Ferrari 458 Italia | The black beast | 4K"
+        );
+        assert_eq!(max_bundle.tree_doc.total_parts, 20);
+        assert_eq!(max_bundle.tree_doc.total_feature_nodes, 2340);
+        assert_eq!(max_bundle.total_rpc_calls, 24);
+        assert!(max_bundle.model_self_audit.all_details_present);
+        assert!(max_bundle.model_self_audit.all_features_toleranced);
+        assert_eq!(max_bundle.model_self_audit.untoleranced_feature_count, 0);
+        assert_eq!(max_bundle.model_self_audit.unconstrained_kinematic_dof, 0);
+        assert!(max_bundle.model_self_audit.ready_for_2d_drawing_package);
+        assert_eq!(max_bundle.model_self_audit.drawing_package_readiness_score, 1.0);
+        assert_eq!(max_bundle.drawing_2d_package.total_sheets, 21);
+        assert_eq!(max_bundle.drawing_2d_package.part_sheets.len(), 20);
+        assert_eq!(max_bundle.drawing_2d_package.bom_balloons.len(), 20);
+        assert!(max_bundle.step_ap242.starts_with("ISO-10303-21;"));
+        assert!(max_bundle.glb_bytes.starts_with(b"glTF"));
+    }
 }
+
