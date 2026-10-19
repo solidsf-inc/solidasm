@@ -1,0 +1,13 @@
+[package]
+name = "solidasm"
+version = "0.1.0"
+edition = "2021"
+authors = ["Andy Norris <andy@solidsf.com>", "solidSF <engineering@solidsf.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/solidsf-inc/solidasm"
+homepage = "https://github.com/solidsf-inc/solidasm"
+description = "solidasm: Pure-Rust Multi-Body CAD Assembly Synthesis, Steinmetz NURBS Tube Coping, SE(3) Kinematic Mechanism & Ackermann Solver, Tolerance Stackup, BOM, Hierarchical STEP AP242 (NAUO), Multi-Node GLB 2.0, and Paid Cloud API Engine (solidSF)"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
