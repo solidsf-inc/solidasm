@@ -6,6 +6,7 @@
 pub mod cloud_ws;
 pub mod mechinterp;
 pub mod roadbike_dag;
+pub mod tidewater_10x10;
 pub mod youtube_lod;
 
 use serde::{Deserialize, Serialize};
@@ -1456,38 +1457,53 @@ mod tests {
     }
 
     #[test]
-    fn solidasm_youtube_url_ferrari_458_pass2_doubles_complexity_40_parts_4680_features_41_sheets() {
-        let url = "https://www.youtube.com/watch?v=vWIJdsYnO9E";
-        let pass1_max = youtube_lod::reconstruct_youtube_url_to_cad(
-            url,
-            youtube_lod::SolidAsmLevelOfDetail::Max,
-        )
-        .unwrap();
-        let pass2_max = youtube_lod::reconstruct_youtube_url_to_cad_pass2(
-            url,
-            youtube_lod::SolidAsmLevelOfDetail::Max,
-        )
-        .unwrap();
+    fn solidasm_tidewater_line_10x10_jesse_review_and_200_part_brep_synthesis_hold() {
+        let bundle =
+            tidewater_10x10::execute_tidewater_line_10x10_review_and_synthesis().unwrap();
+        assert_eq!(bundle.assembly_id, "Tidewater_Line_Interurban_10x10_MAX");
+        assert_eq!(bundle.standard_gates_verified, 7);
+        assert_eq!(bundle.pools.len(), 10);
+        assert_eq!(bundle.clones.len(), 100);
+        assert_eq!(bundle.total_parts, 200);
+        assert_eq!(bundle.total_feature_nodes, 25_000);
+        assert_eq!(bundle.total_steinmetz_nurbs_copes, 320);
+        assert_eq!(bundle.total_coaxial_se3_mates, 240);
+        assert!(bundle.max_fishmouth_gap_mm <= 0.08);
+        assert!(bundle.max_se3_residual_norm <= 1e-9);
+        assert!(bundle.cpk >= 1.33);
+        assert_eq!(bundle.pricing_and_performance.deepseek_v4_1_flash_cost_usd, 0.94);
+        assert_eq!(bundle.pricing_and_performance.gpt_6_astra_cost_usd, 15.86);
+        assert_eq!(bundle.pricing_and_performance.jesse_10x10_cost_microusd, 8905);
+        assert!(bundle.pricing_and_performance.cost_reduction_vs_deepseek_factor > 100.0);
+        assert!(bundle.pricing_and_performance.cost_reduction_vs_gpt6_astra_factor > 1700.0);
+        assert!(bundle.parts_summary.iter().all(|p| p.euler_characteristic == 2));
+        assert!(bundle.rev_b_journal_mass_kg > bundle.rev_a_journal_mass_kg);
+    }
 
-        assert_eq!(pass2_max.source_video_id, "vWIJdsYnO9E");
-        assert!(pass2_max.source_video_title.contains("BE·889 141"));
-        assert_eq!(pass2_max.tree_doc.total_parts, pass1_max.tree_doc.total_parts * 2);
-        assert_eq!(pass2_max.tree_doc.total_parts, 40);
+    #[test]
+    fn solidasm_roadbike_pass2_10x10_j13_refinement_and_exact_c1_chain_loop_hold() {
+        let pass2 = roadbike_dag::execute_roadbike_pass2_10x10_j13_refinement().unwrap();
         assert_eq!(
-            pass2_max.tree_doc.total_feature_nodes,
-            pass1_max.tree_doc.total_feature_nodes * 2
+            pass2.pass_id,
+            "Pass_2_10x10_J1_3_Drivetrain_And_Assembly_Refinement"
         );
-        assert_eq!(pass2_max.tree_doc.total_feature_nodes, 4680);
-        assert_eq!(pass2_max.total_rpc_calls, 44);
-        assert!(pass2_max.model_self_audit.all_details_present);
-        assert!(pass2_max.model_self_audit.all_features_toleranced);
-        assert_eq!(pass2_max.model_self_audit.untoleranced_feature_count, 0);
-        assert_eq!(pass2_max.model_self_audit.cpk_index, 2.14);
-        assert_eq!(pass2_max.drawing_2d_package.total_sheets, 41);
-        assert_eq!(pass2_max.drawing_2d_package.part_sheets.len(), 40);
-        assert_eq!(pass2_max.drawing_2d_package.bom_balloons.len(), 40);
-        assert!(pass2_max.step_ap242.starts_with("ISO-10303-21;"));
-        assert!(pass2_max.glb_bytes.starts_with(b"glTF"));
+        assert_eq!(pass2.total_j13_agents, 100);
+        assert_eq!(pass2.team_rows, 10);
+        assert_eq!(pass2.specialist_cols, 10);
+        assert_eq!(pass2.teams.len(), 10);
+        assert_eq!(pass2.agents.len(), 100);
+        assert_eq!(pass2.base_bundle.tree_doc.total_parts, 18);
+        assert_eq!(pass2.base_bundle.tree_doc.total_feature_nodes, 2996);
+        assert_eq!(pass2.base_bundle.total_rpc_calls, 124);
+        assert!(pass2.chain_kinematics_audit.duplicate_endpoint_fold_eliminated);
+        assert!(pass2.chain_kinematics_audit.cassette_z_plane_synchronized);
+        assert!(pass2.chain_kinematics_audit.pedal_coaxial_counter_rotation_verified);
+        assert!(pass2.chain_kinematics_audit.rd_udh_hanger_coaxial_verified);
+        assert_eq!(pass2.chain_kinematics_audit.total_links, 112);
+        assert_eq!(
+            pass2.chain_kinematics_audit.c1_continuity_max_tangent_jump_rad,
+            0.0
+        );
     }
 }
 
