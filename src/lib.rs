@@ -5,6 +5,7 @@
 
 pub mod cloud_ws;
 pub mod mechinterp;
+pub mod roadbike_dag;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -1375,5 +1376,20 @@ mod tests {
         assert_eq!(r2.credits_charged_microusd, 20);
         assert_eq!(r2.credits_remaining_microusd, 10_000_000 - 45);
         server.join();
+    }
+
+    #[test]
+    fn solidasm_roadbike_18_part_1934_feature_rpc_and_live_dag_mutation_hold() {
+        let bundle = roadbike_dag::execute_roadbike_rpc_finalization_and_mutation().unwrap();
+        assert_eq!(bundle.tree_doc.total_parts, 18);
+        assert_eq!(bundle.tree_doc.total_feature_nodes, 1934);
+        assert_eq!(bundle.finalized_parts.len(), 18);
+        assert!(bundle.finalized_parts.iter().all(|p| p.brep.euler_characteristic == 2));
+        assert_eq!(bundle.total_rpc_calls, 24);
+        assert_eq!(bundle.total_credits_billed_microusd, 570);
+        assert!(bundle.rev_b_crank_mass_kg > bundle.rev_a_crank_mass_kg);
+        assert!(bundle.rev_b_crank_vertices > bundle.rev_a_crank_vertices);
+        assert!(bundle.step_ap242.contains("NEXT_ASSEMBLY_USAGE_OCCURRENCE"));
+        assert!(bundle.glb_bytes.starts_with(b"glTF"));
     }
 }
