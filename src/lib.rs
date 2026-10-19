@@ -1454,5 +1454,41 @@ mod tests {
         assert!(max_bundle.step_ap242.starts_with("ISO-10303-21;"));
         assert!(max_bundle.glb_bytes.starts_with(b"glTF"));
     }
+
+    #[test]
+    fn solidasm_youtube_url_ferrari_458_pass2_doubles_complexity_40_parts_4680_features_41_sheets() {
+        let url = "https://www.youtube.com/watch?v=vWIJdsYnO9E";
+        let pass1_max = youtube_lod::reconstruct_youtube_url_to_cad(
+            url,
+            youtube_lod::SolidAsmLevelOfDetail::Max,
+        )
+        .unwrap();
+        let pass2_max = youtube_lod::reconstruct_youtube_url_to_cad_pass2(
+            url,
+            youtube_lod::SolidAsmLevelOfDetail::Max,
+        )
+        .unwrap();
+
+        assert_eq!(pass2_max.source_video_id, "vWIJdsYnO9E");
+        assert!(pass2_max.source_video_title.contains("BE·889 141"));
+        assert_eq!(pass2_max.tree_doc.total_parts, pass1_max.tree_doc.total_parts * 2);
+        assert_eq!(pass2_max.tree_doc.total_parts, 40);
+        assert_eq!(
+            pass2_max.tree_doc.total_feature_nodes,
+            pass1_max.tree_doc.total_feature_nodes * 2
+        );
+        assert_eq!(pass2_max.tree_doc.total_feature_nodes, 4680);
+        assert_eq!(pass2_max.total_rpc_calls, 44);
+        assert!(pass2_max.model_self_audit.all_details_present);
+        assert!(pass2_max.model_self_audit.all_features_toleranced);
+        assert_eq!(pass2_max.model_self_audit.untoleranced_feature_count, 0);
+        assert_eq!(pass2_max.model_self_audit.cpk_index, 2.14);
+        assert_eq!(pass2_max.drawing_2d_package.total_sheets, 41);
+        assert_eq!(pass2_max.drawing_2d_package.part_sheets.len(), 40);
+        assert_eq!(pass2_max.drawing_2d_package.bom_balloons.len(), 40);
+        assert!(pass2_max.step_ap242.starts_with("ISO-10303-21;"));
+        assert!(pass2_max.glb_bytes.starts_with(b"glTF"));
+    }
 }
+
 
