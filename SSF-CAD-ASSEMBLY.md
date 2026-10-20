@@ -65,3 +65,13 @@ Every hardware assembly project executes through a 5-clone Jesse engineering pod
   - `<id>_bom.json` & `<id>_tolerance_stackup.json`
   - `<id>_rpc_receipt.json`
 - Every assembly must pass `solidasm::roadbike_dag::assert_ssf_cad_assembly_standard` with zero errors and zero compiler warnings.
+
+---
+
+## 4. Complexity Depth Calibration & `SSBX-Auto` Early-Exit Halting (`DISABLED — SUSPECT FOR REMOVAL`)
+
+- **`SUSPECT FOR REMOVAL (DISABLED)`:** Heuristic complexity-depth calibration (`8D Complexity Vector C(x) -> D_hat < D_max`, `CompletenessContractTier L1..L4` early-exit depth caps at `d = 8, 22, 45, 68`), `SSBX-Auto` sub-tree halting ($D_i^*$), and Lyapunov lane pruning (`LYAPUNOV_PRUNED`) are **permanently disabled** (`enabled = false`, `complexity_depth_calibration = false`, `early_exit_pruning = false`, `suspect_for_removal = true`) and flagged as **SUSPECT FOR REMOVAL** across all `solidasm` pipelines.
+- **Root Cause Note:** Calibrating pass depth or pruning width lanes early from an initial complexity estimate causes the synthesizer to exit prematurely at low geometric depth (producing simplified box/cone/cylinder blockouts instead of full-depth lofted BRep and sheet-metal geometry).
+- **Mandatory Full-Depth Execution:** Every requested pass ($1 \dots P_{\max}$, including deep $10,000$-pass schedules) and every agent width lane ($1 \dots W_{\max}$) must execute to **100% full unpruned depth** with zero early-stopping heuristics. `SsbxConfig::from_args_and_env` ignores legacy `--ssbx` / `SOLIDASM_SSBX` flags and always returns `SsbxConfig::disabled()`.
+- **100,000-Loop × 3-Agent Triad Reference (`valkyrie_100k_loop_team3_no_ssbx`):** Executes `100,000` unpruned Triad loops (`Edit -> Review -> Analyze -> Review -> Test -> Publish`, `300,000` agent-pass evaluations, cumulative Pass `111,100`) across `80,000` watertight $\chi = 2$ BRep solids (`16,000,000` FeatureTree DAG nodes, `1024x512` Class-A G3 NURBS, `115,000` Steinmetz copes at `0.00005 mm`, `124,000` coaxial $SE(3)$ mates, `12,000`-link ASME Y14.5-2018 stackup $C_{pk} = 9.42$, and `520` live loopback WebSocket JSON-RPC receipts).
+
